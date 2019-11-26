@@ -1,10 +1,12 @@
 <div style="background-color: blue; color: white; overflow: auto; height: 200px"
      appScrollContent>
   <ng-container *ngFor="let header of headers">
-    <h3>{{header}}</h3>
-    <p>
-      {{words}}
-    </p>
+    <section appScrollElement>
+      <h3>{{header}}</h3>
+      <p>
+        {{words}}
+      </p>
+    </section>
   </ng-container>
 </div>
 
