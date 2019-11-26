@@ -1,7 +1,8 @@
 <div style="background-color: blue; color: white; overflow: auto; height: 200px"
      appScrollContent>
-  <ng-container *ngFor="let header of headers">
-    <section appScrollElement>
+  <ng-container *ngFor="let header of headers; let index = index">
+    <section appScrollElement
+             [attr.data-index]="index">
       <h3>{{header}}</h3>
       <p>
         {{words}}

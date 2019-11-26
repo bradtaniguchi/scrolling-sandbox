@@ -1,51 +1,57 @@
 import {
-  Directive,
   ContentChildren,
-  OnInit,
+  Directive,
   HostListener,
   OnDestroy,
-<<<<<<< Updated upstream
-  ElementRef
-=======
-<<<<<<< HEAD
+  OnInit,
+  QueryList,
   ElementRef,
-  QueryList
-=======
-  ElementRef
->>>>>>> fb8e34a52cff854e5907fc29045925fafb532e9f
->>>>>>> Stashed changes
+  Output,
+  EventEmitter,
+  Input
 } from '@angular/core';
-import { ScrollElementDirective } from './scroll-element.directive';
 import { Subject } from 'rxjs';
-import { takeUntil, debounceTime } from 'rxjs/operators';
+import { debounceTime, takeUntil, map, filter } from 'rxjs/operators';
+import { ScrollElementDirective } from './scroll-element.directive';
+import { ScrollContentService } from './scroll-content.service';
 
 @Directive({
   selector: '[appScrollContent]'
 })
 export class ScrollContentDirective implements OnInit, OnDestroy {
+  /**
+   * the time between emissions, higher numbers will decrease the level of emissions, lower
+   * will increase the amount of checks per second when scrolling.
+   * Defaults to 100
+   */
+  @Input() debounceTime = 100;
+  /**
+   * The element currently scrolled to.
+   */
+  @Output() element = new EventEmitter<ScrollElementDirective<any>>();
+
   @ContentChildren(ScrollElementDirective)
-<<<<<<< Updated upstream
-  scrollElements: ScrollElementDirective[];
-=======
-<<<<<<< HEAD
-  scrollElements: QueryList<ScrollElementDirective>;
-=======
-  scrollElements: ScrollElementDirective[];
->>>>>>> fb8e34a52cff854e5907fc29045925fafb532e9f
->>>>>>> Stashed changes
+  scrollElements: QueryList<ScrollElementDirective<any>>;
 
   private takeUntil = new Subject();
-  private onScroll$ = new Subject();
+  private onScroll$ = new Subject<UIEvent>();
   @HostListener('scroll', ['$event']) onScroll(event: UIEvent) {
     this.onScroll$.next(event);
   }
-  constructor() {}
+  constructor(
+    private elementRef: ElementRef,
+    private scrollContentService: ScrollContentService
+  ) {}
 
   ngOnInit() {
-    console.log('test with scrollElements', this.scrollElements);
     this.onScroll$
-      .pipe(debounceTime(100), takeUntil(this.takeUntil))
-      .subscribe(event => this.test());
+      .pipe(
+        debounceTime(this.debounceTime),
+        map(() => this.getElementInRange()),
+        filter(_ => !!_),
+        takeUntil(this.takeUntil)
+      )
+      .subscribe(element => this.element.emit(element));
   }
 
   ngOnDestroy() {
@@ -53,15 +59,15 @@ export class ScrollContentDirective implements OnInit, OnDestroy {
     this.takeUntil.unsubscribe();
   }
 
-  private test() {
-<<<<<<< Updated upstream
-    console.log('test with scrollElements', this.scrollElements);
-=======
-<<<<<<< HEAD
-    console.log('test with scrollElements', this.scrollElements.length);
-=======
-    console.log('test with scrollElements', this.scrollElements);
->>>>>>> fb8e34a52cff854e5907fc29045925fafb532e9f
->>>>>>> Stashed changes
+  private getElementInRange(): ScrollElementDirective<any> | undefined {
+    const elements = this.scrollElements
+      .toArray()
+      .map(({ elementRef }) => elementRef.nativeElement);
+    const scrollTop = (this.elementRef.nativeElement as HTMLElement).scrollTop;
+
+    return this.scrollContentService.findElementInRange({
+      elements,
+      scrollTop
+    });
   }
 }
